@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cell & Healing Showdown</title>
+<style>
+:root{--navy:#071b45;--deep:#03102f;--gold:#ffdc2d;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#06183c,#102d63);color:white;font-family:Arial,Helvetica,sans-serif;min-height:100vh}
+header{text-align:center;padding:20px 14px 10px}h1{font-size:clamp(2rem,5vw,3.5rem);margin:4px 0;color:white;letter-spacing:1px;text-shadow:0 3px 0 #152c58}
+.sub{color:var(--gold);font-weight:bold;letter-spacing:1px}.top{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:10px auto 18px;max-width:1100px;padding:0 12px}
+.score{background:#102b60;border:1px solid #496da7;border-radius:14px;padding:12px 16px;min-width:180px;text-align:center}.score.active{outline:3px solid var(--gold)}
+.score strong{display:block;font-size:14px}.score .num{font-size:30px;font-weight:800;margin:4px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;font-weight:800;transition:transform .12s,filter .12s}button:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px)}button:disabled{cursor:not-allowed;opacity:.35}
+.small{padding:7px 10px;background:#dceaff;color:#10234b;margin:2px}.gold{background:var(--gold);color:#10234b;padding:10px 16px}
+#board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;max-width:1250px;margin:0 auto;padding:10px 14px 30px}
+.category{border-radius:13px;overflow:hidden;background:#10234b;border:1px solid #45618f;min-width:0}
+.catname{min-height:88px;padding:12px 8px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:clamp(.8rem,1.5vw,1.05rem);line-height:1.2}
+.values{display:grid;gap:8px;padding:8px}.value{height:66px;color:white;font-size:clamp(1.2rem,2.2vw,1.8rem);box-shadow:0 4px 0 #0004}.value.used{background:#45536d!important;color:#b8c1d2;text-decoration:line-through;box-shadow:none}
+#questionView{display:none;max-width:900px;margin:28px auto;padding:20px}
+.panel{background:#102b60;border:1px solid #5878ac;border-radius:20px;padding:clamp(20px,4vw,42px);text-align:center;box-shadow:0 15px 40px #0004}
+.kicker{color:var(--gold);font-weight:bold;letter-spacing:1px}.qtext{font-size:clamp(1.5rem,4vw,2.6rem);line-height:1.3;margin:30px 0;min-height:120px;display:grid;place-items:center}
+.answer{display:none;background:#e4f8ec;color:#12442b;border-radius:14px;padding:20px;font-size:clamp(1.1rem,2.5vw,1.6rem);line-height:1.4;font-weight:bold;margin:16px 0}
+.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.actions button{padding:13px 18px}
+footer{text-align:center;color:#bfd0eb;padding:0 15px 24px;font-size:.9rem}
+@media(max-width:760px){#board{grid-template-columns:repeat(2,minmax(0,1fr))}.catname{min-height:65px}.value{height:52px}}
+@media print{body{background:white;color:black}.top,.actions,footer{display:none}#board{grid-template-columns:repeat(5,1fr)}}
+</style></head><body>
+<header><h1>🔬 CELL &amp; HEALING SHOWDOWN!</h1><div class="sub">7TH GRADE SCIENCE REVIEW • CELLS • HEALING • BODY SYSTEMS</div></header>
+<div class="top" id="scores"></div>
+<section id="board"></section>
+<section id="questionView"><div class="panel" id="panel">
+<div class="kicker" id="qcategory"></div><h2 id="qtitle">YOUR QUESTION</h2>
+<div class="qtext" id="qtext"></div><div class="answer" id="answer"></div>
+<div class="actions"><button class="gold" id="reveal">REVEAL ANSWER</button><button class="small" id="award">AWARD POINTS &amp; RETURN</button><button class="small" id="skip">RETURN WITHOUT POINTS</button></div>
+</div></section>
+<footer>Choose a value • Discuss as a team • Reveal the answer • Award points • Used questions automatically close off</footer>
+<script>
+const categories = [{"name": "Healing & Cell Repair", "color": "#8B45D6", "questions": [{"points": 100, "question": "What type of cells help repair an opening or wound in the skin?", "answer": "New skin cells, produced through cell reproduction."}, {"points": 200, "question": "What is the process called when damaged or old cells are replaced through cell reproduction?", "answer": "Mitosis (cell division)."}, {"points": 300, "question": "Why do white blood cells move to a cut or wound?", "answer": "They fight germs/pathogens and help prevent infection."}, {"points": 400, "question": "Which part of the blood helps form a clot and stop bleeding?", "answer": "Platelets."}, {"points": 500, "question": "How does mitosis help the body heal after an injury?", "answer": "It produces new cells that replace damaged or dead cells and repair tissue."}]}, {"name": "Cell Parts & Jobs", "color": "#159B55", "questions": [{"points": 100, "question": "What is the main job of the cell membrane?", "answer": "It controls what enters and leaves the cell."}, {"points": 200, "question": "Which organelle stores genetic information and directs cell activities?", "answer": "The nucleus."}, {"points": 300, "question": "Where is the cytoplasm found?", "answer": "Inside the cell membrane, surrounding the cell parts (organelles)."}, {"points": 400, "question": "What do mitochondria do for the cell?", "answer": "They release usable energy from food for the cell."}, {"points": 500, "question": "Match each cell part to its job: ribosomes, chloroplasts, cell wall, DNA.", "answer": "Ribosomes make proteins; chloroplasts capture sunlight for photosynthesis; the cell wall provides support and shape; DNA stores genetic information."}]}, {"name": "Prokaryotic & Eukaryotic", "color": "#087ED5", "questions": [{"points": 100, "question": "Do prokaryotic cells have a nucleus?", "answer": "No. Their DNA is not enclosed in a nucleus."}, {"points": 200, "question": "Are bacteria prokaryotic or eukaryotic?", "answer": "Prokaryotic."}, {"points": 300, "question": "Name three structures found in both prokaryotic and eukaryotic cells.", "answer": "Cell membrane, cytoplasm, ribosomes, and DNA are shared (any three)."}, {"points": 400, "question": "List three traits of eukaryotic cells.", "answer": "They have a nucleus, membrane-bound organelles, and are generally larger/more complex."}, {"points": 500, "question": "Give two differences between prokaryotic and eukaryotic cells.", "answer": "Prokaryotes lack a nucleus and membrane-bound organelles; eukaryotes have both. Prokaryotes are generally smaller and simpler."}]}, {"name": "Plant, Animal & Organelles", "color": "#ED7908", "questions": [{"points": 100, "question": "Which cell structure makes proteins?", "answer": "Ribosomes."}, {"points": 200, "question": "Which structure gives plant cells shape and support?", "answer": "The cell wall."}, {"points": 300, "question": "What organelle captures sunlight for photosynthesis?", "answer": "Chloroplasts."}, {"points": 400, "question": "Name two similarities and two differences between plant and animal cells.", "answer": "Both have a cell membrane, cytoplasm, nucleus, DNA, and mitochondria. Plant cells have a cell wall and chloroplasts; animal cells do not."}, {"points": 500, "question": "A cell has chloroplasts, a cell wall, and a large central vacuole. What type of cell is it? Explain.", "answer": "A plant cell. These structures are characteristic of plant cells."}]}, {"name": "Body Systems & Challenge", "color": "#D9188B", "questions": [{"points": 100, "question": "Which body cells detect pain from an injury?", "answer": "Nerve cells (neurons)."}, {"points": 200, "question": "What is a group of two or more cells working together for a specific job called?", "answer": "A tissue."}, {"points": 300, "question": "Organs are made of two or more ______ that work together. Fill in the blank.", "answer": "Tissues."}, {"points": 400, "question": "Name one function of each: bone, muscle, and skin.", "answer": "Bone supports/protects the body; muscle helps movement; skin protects the body and helps sense the environment."}, {"points": 500, "question": "How do nerve cells and muscles work together when you touch something painful?", "answer": "Nerve cells detect the stimulus and send signals to the brain/spinal cord; signals can then travel to muscles, causing a response or movement away."}]}];
+let scores=[0,0],activeTeam=0,current=null,used=new Set();
+const $=id=>document.getElementById(id);
+function renderScores(){
+ $('scores').innerHTML=scores.map((s,i)=>`<div class="score ${i===activeTeam?'active':''}"><strong>TEAM ${i+1}</strong><div class="num">${s}</div><button class="small" onclick="changeScore(${i},-100)">−100</button><button class="small" onclick="changeScore(${i},100)">+100</button><button class="small" onclick="setTeam(${i})">Select team</button></div>`).join('');
+}
+function changeScore(i,n){scores[i]+=n;renderScores()}
+function setTeam(i){activeTeam=i;renderScores()}
+function renderBoard(){
+ $('board').innerHTML=categories.map((cat,ci)=>`<div class="category"><div class="catname" style="background:${cat.color}">${cat.name}</div><div class="values">${cat.questions.map((q,qi)=>{let key=ci+'-'+qi;return `<button class="value ${used.has(key)?'used':''}" style="background:${cat.color}" ${used.has(key)?'disabled':''} onclick="openQuestion(${ci},${qi})">${used.has(key)?'✓ USED':q.points}</button>`}).join('')}</div></div>`).join('');
+}
+function openQuestion(ci,qi){
+ current={ci,qi};let cat=categories[ci],q=cat.questions[qi];
+ $('board').style.display='none';$('questionView').style.display='block';
+ $('qcategory').textContent=cat.name+' • '+q.points+' POINTS';
+ $('qtext').textContent=q.question;$('answer').textContent=q.answer;$('answer').style.display='none';
+ $('reveal').style.display='inline-block';$('reveal').textContent='REVEAL ANSWER';
+ $('award').textContent=`AWARD ${q.points} POINTS & RETURN`;
+}
+function finish(award){
+ if(!current)return;let {ci,qi}=current,key=ci+'-'+qi,q=categories[ci].questions[qi];
+ used.add(key);if(award)scores[activeTeam]+=q.points;
+ current=null;$('questionView').style.display='none';$('board').style.display='grid';
+ renderBoard();renderScores();
+}
+$('reveal').onclick=()=>{$('answer').style.display='block';$('reveal').style.display='none'};
+$('award').onclick=()=>finish(true);$('skip').onclick=()=>finish(false);
+renderBoard();renderScores();
+</script></body></html>
